@@ -1,0 +1,5 @@
+Ürün Kodu
+Ürün Adi / Ürün Açiklamasi
+Ürün Adi / Ürün Açiklamasi
+Ürün Adi / Ürün Açiklamasi
+Miktar
