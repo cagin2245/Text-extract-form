@@ -101,7 +101,7 @@ if __name__ == "__main__":
                                                     for t in cell.text:
                                                         if t in strC:    
                                                             tdata.append(sett)
-                                                            tdata.append()
+                                                            
                                                             
                                                 
                              
@@ -112,7 +112,7 @@ if __name__ == "__main__":
     value_map = parser.get_value_map(response,word_map)
     table_info = parser.extract_table_info(response, word_map)
     
-                                            
+
                                     
     with open("table_data.txt","w", encoding="utf8") as text_file:
         strtext = '\n'.join(table_data)
