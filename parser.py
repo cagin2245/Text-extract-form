@@ -1,11 +1,3 @@
-"""
--*- coding: utf-8 -*-
-========================
-AWS Lambda
-========================
-Contributor: Chirag Rathod (Srce Cde)
-========================
-"""
 
 
 import json
