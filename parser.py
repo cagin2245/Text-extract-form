@@ -4,7 +4,7 @@ import json
 import uuid
 import trp
 
-
+#
 def extract_text(response, extract_by="WORD"):
     line_text = []
     for block in response["Blocks"]:
