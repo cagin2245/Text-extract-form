@@ -1,16 +1,14 @@
 from posixpath import split
-from urllib import response
+
 from xml.dom.minidom import Document
 import boto3
 import pandas as pd
 import json
 import re
 import ast
-import trp.trp2 as t2
-import trp as t1
 import itertools
 import numpy as np
-import parser
+
 
 from difflib import SequenceMatcher
 
@@ -28,11 +26,11 @@ def textDetect(): #AWS Textract bağlantısı ve response döndürülmesi
     file = open("demo.jpeg","rb")
     binaryFile = file.read()    
     client = boto3.client('textract',"us-east-1")
-    response = client.analyze_document(
+    response = client.analyze_expense(
         Document={
             'Bytes': binaryFile
 
-        },FeatureTypes=['FORMS','TABLES'])
+        })
     
     return response
     
@@ -45,78 +43,37 @@ if __name__ == "__main__":
     #     for line in input_file:
     #         strCompare.append(line)
     # response = textDetect()
-    # with open("AWS_RESPONSE.txt","w") as aws_response:
+    # with open("AWS_AnalyzeExpense_RESPONSE.txt","w") as aws_response:
     #     aws_response.write(str(response))
    
     
     
     
     
-    with open('aws.txt',encoding="utf8") as responseFile:
+    with open('AWS_AnalyzeExpense_RESPONSE.txt') as responseFile:
         data = responseFile.read()
-    response = ast.literal_eval(data)
-    doc = t1.Document(response)
+        response = ast.literal_eval(data)
+    print(response)
+    
     
     
     valSet = set()
     text = []
     l1 = []
     tdata = []
-    for page in doc.pages:
-        for table in page.tables:
-            table_data = []
-            headers = table.get_header_field_names()
-            for header in headers:
-                if(len(header)>0):
-                    
-                    header = [e for e in headers if e != []]
-                    for val in header:
-                        
-                        while(""in val):
-                            val.remove("")
-                        for eVal in val:
-                            
-                            l1.append(eVal)
-                            set_1 = list(set(l1))
-                    
-                    for strC in strCompare:
-                        if(re.search("",strC)):
-                            strCval = strC.split()
-                        
-                        for sett in set_1:
-                            if(re.search(" ",sett)):
-                                split_text = sett.split()
-                                for stext in split_text:
-                                
-                                    if(is_string_similar(stext,strC)):
-                                        tdata.append(sett)                                               
-                            if(is_string_similar(sett,strC)):
-                                for r in table.rows:
-                                    for cell in r.cells:
-                                        
-                                        h_text = [e for e in cell.text if e != '']
-                                        for headerrr in h_text:
-                                            
-                                            if headerrr in strC:
-                                                    for t in cell.text:
-                                                        if t in strC:    
-                                                            tdata.append(sett)
-                                                            
-                                                            
+    
+                 
                                                 
                              
-    tdata= [e for e in tdata if e !='']
-    print(list(set(tdata)))
-    word_map = parser.map_word_id(response)        
-    key_map = parser.get_key_map(response,word_map)                                
-    value_map = parser.get_value_map(response,word_map)
-    table_info = parser.extract_table_info(response, word_map)
+    
+    
+  
     
 
                                     
-    with open("table_data.txt","w", encoding="utf8") as text_file:
-        strtext = '\n'.join(table_data)
-        text_file.write(str(list(set(tdata))))
+    # with open("table_data.txt","w", encoding="utf8") as text_file:
+    #     strtext = '\n'.join(table_data)
+    #     text_file.write(str(list(set(tdata))))
             
                     
                     
