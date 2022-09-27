@@ -89,14 +89,14 @@ if __name__ == "__main__":
                     
                     
                     
-                    print(tNum)
+                    
                     for table_r in lig['LineItems']:
                         
-                        tableIndex = tNum
                         
+                        
+                        tNum += 1
                         for tr in table_r['LineItemExpenseFields']:
-                            tNum += 1
-                            print(tNum)
+                            
                             if(tr['Type']['Text']=="EXPENSE_ROW"):
                                 
                                 tables[tableIndex]['header']['EXPENSE_ROW'] == "EXPENSE_ROW"
@@ -109,8 +109,9 @@ if __name__ == "__main__":
                                         sVal = tr['LabelDetection']['Text']
                                         
                                         sVal = re.sub('/\([^)]+\)/','',sVal)
-                                        print(sVal)
                                         tables[tableIndex]['header'][tr['Type']['Text']] = sVal
+                                        
+                                        
                                     
                                         
                                         
@@ -118,17 +119,55 @@ if __name__ == "__main__":
                                 if val == 'ValueDetection':
                                     
                                     if(bool(tables[tableIndex]['header'][tr['Type']['Text']])):
-                                        print(tables[tableIndex]['header'][tr['Type']['Text']])
+                                        
                                         
                                         tables[tableIndex]['body'][tr['Type']['Text']] = tr['ValueDetection']['Text']
+                                        
                             if(tr['Type']['Text']=="EXPENSE_ROW"):
+                                
                                 tables[tableIndex]['body'][tables[tableIndex]['header']['EXPENSE_ROW']] = tr['ValueDetection']['Text']
             
         retArr = [{"forms" : forms, "tables" : tables}]
         return retArr
-                                    
+    def tableMatcher(tables):
+        sArray = [{
+            "No": ["SIRA NO", "Sıra No", "Sıra", "Sira No", "S.No", "No", "NO", "#", "Sıra No.", "Order", "Order No.", "Sira No"],
+            "materialDesc": [
+				"Ürün Açıklaması", "Cinsi", "Mal", "Mal/Hizmet", "Açiklama", "Malzeme Tanımı",
+				"AÇIKLAMA", "Ürün", "Malzeme", "Malzeme Cinsi", "Ürün Adi", "Material", "Ürün Adı / Ürün Açıklaması", "Malzemenin Cinsi",
+				"MALZEMENİN CINSI", "MALZEMELER", "Cinsi", "MALZEME"],
+            "supQuantity": ["Miktar", "MİKTAR", "Miktarı", "MİKTARI", "MIKTAR", "ADET", "Adet","MİKTAR/Br.", "MIKTAR/Br."],
+            "unite": ["Br.", "Birim", "BİRİM", "BR.","","BIRIM"],
+            "unitePrice": ["Birim Fiyat", "BİRİM FİYAT", "B.Fiyat", "Br.Fiyat", "Liste", "Liste Fiyatı", 
+				"Liste Fiyat", "BIRIM FİYAT", "BIRIM FIYAT", "NET BIRIM FIYAT", "Net Birim Fiyat", 
+				"İskontosuz Birim Fiyat", "ISKONTOSUZ BIRIM FİYAT", "ISKONTOSUZ BR.FYT.", "ISKONTOSUZ BR. FIYAT", "iSKONTOSUZ BR.FYT.",
+			"B.Fiyat","Fiyat","FIYAT","Net Fiy."],
+            "fUnitePrice": ["İSKONTOLU BİRİM FİYAT", "NİHAi BİRİM FİYAT", "iSKONTOLU BR.FYT."],
+            "discountRatio": ["ISKONTO ORANI","İsk.", "İskonto", "İSKONTO", "ARTIRIM", "İNDİRİM", "İndirim Oranı", "İskonto Oranı", "İsk. (%)","Isk."],
+            "supBrands": ["Marka", "Marka/Model", "Brand", "MARKA", "MRK", "Model"," Teklif Edilen Markalar"],
+            "deliveryDateSup": ["Teslim Tarihi"," Temin Tarihi", "Tarih", "Termin Tarihi"],
+            "vatRatio": ["KDV", "K.D.V", "kdv", "KDV(%)", "KDV Oranı"],
+            "curCode": ["PARA BİRİMİ", "PARA BIRIMI", "PARA BR."]}]
+        retArr = []
+        reHeader = [{}]
+        offerReturn = []
+        i = 0
+        
+        for t in tables[0]['tables']:
+            header = t['header']
+            for dict in sArray:
+                key = list(dict.keys())
+                value = dict.values
+                if dict.get(key[i]):
+                    tempVal = 0
+                    print(key[i])
+                i+=1
+                
+                                        
     arr = textractToArray(response)
-    pprint(arr)
+    tableMatcher(arr)    
+    
+    
                        
                                 
                             
