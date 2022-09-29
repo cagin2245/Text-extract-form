@@ -57,11 +57,11 @@ if __name__ == "__main__":
     def textractToArray(response):
         num = len(response)
         #tables = [{"header": {"EXPENSE_ROW": 0} , "body" : {"EXPENSE_ROW" :0}}]*4
-        tables = [{"header":{"EXPENSE_ROW" : None},"body": {}}] 
+        tables = [{"header" : [],"body" : []}] 
         forms = [{"Type": 0},{"Confidence": 0}]
         
         i = 0
-        tNum = 0
+        
         if num > 0:
             for array in response['ExpenseDocuments']:
                 
@@ -88,7 +88,7 @@ if __name__ == "__main__":
                         for lig in array['LineItemGroups']:
                             
                             tableIndex = lig['LineItemGroupIndex']
-                            
+                            tNum = 0
                             for table_r in lig['LineItems']:
                                 
                                 tNum += 1
@@ -96,8 +96,9 @@ if __name__ == "__main__":
                                 for tr in table_r['LineItemExpenseFields']:
                                     
                                     if(tr['Type']['Text']=="EXPENSE_ROW"):
+                                        if tables[tableIndex-1]['header'] == 'EXPENSE_ROW':
+                                            tables[tableIndex-1]['header'] = "EXPENSE_ROW"
                                         
-                                        tables[tableIndex-1]['header']['EXPENSE_ROW'] = "EXPENSE_ROW"
                                         
                                         
                                     for val in tr:
@@ -107,7 +108,10 @@ if __name__ == "__main__":
                                                 sVal = tr['LabelDetection']['Text']
                                                 
                                                 sVal = re.sub('/\([^)]+\)/','',sVal)
-                                                tables[tableIndex-1]['header'][tr['Type']['Text']] = sVal
+                                                
+                                                
+                                                
+                                                tables[tableIndex-1]['header'].append(sVal)
                                                 
                                                 
                                                 
@@ -117,18 +121,30 @@ if __name__ == "__main__":
                                                                                 
                                         if val == 'ValueDetection':
                                             
-                                            if(tables[tableIndex-1]['header'][tr['Type']['Text']]):
+                                            if(tables[tableIndex-1]['header']):
+                                                iter = len(tables[tableIndex-1]['header'])
+                                                print(iter)
+                                                print(tables[tableIndex-1]['header'][i])
                                                 
-                                                tables[tableIndex-1]['body'][tables[tableIndex-1]['header'][tr['Type']['Text']]] = (tr['ValueDetection']['Text'])
+                                                tables[tableIndex-1]['body'].append(dict)
+                                                
+                                                
+                                                
+                                                
+                                            
+                                                
+                                                
+                                               
                                                 
                                                 
                                                 
                                     
-                                    if(tr['Type']['Text']=="EXPENSE_ROW"):
+                                    # if(tr['Type']['Text']=="EXPENSE_ROW"):
                                         
-                                        tables[tableIndex-1]['body'][tables[tableIndex-1]['header']['EXPENSE_ROW']] = tr['ValueDetection']['Text']
-                                    
-        pprint(tables[0]['body'])
+                                    #     tables[tableIndex-1]['body'][i][tables[tableIndex-1]['header'][i]['EXPENSE_ROW']] = tr['ValueDetection']['Text']
+                                        
+                                        
+        
         retArr = [{"forms" : forms, "tables" : tables}]
         return retArr
     def tableMatcher(tables,offerData):

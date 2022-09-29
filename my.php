@@ -88,7 +88,7 @@ function textractToTable($pureArr) {
 									{	
 										case "ValueDetection":
 											
-											
+											print_r($tables[$tableIndex]['header'][$trk]);
 											if(isset($tables[$tableIndex]['header'][$trk]))
 											{
 												
@@ -111,7 +111,7 @@ function textractToTable($pureArr) {
 			}
         }
 		}
-		print_r($tables[$tableIndex]['body']);
+		// print_r($tables);
 		$retArr = array("forms" =>$forms, "tables" => $tables);
 		return $retArr;
 	}

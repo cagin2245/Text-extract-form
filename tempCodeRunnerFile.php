@@ -1,2 +1,2 @@
 <?php
-print($h);
+isset($tables[$tableIndex]['header'][$trk])
