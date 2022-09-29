@@ -9,6 +9,7 @@ import ast
 import itertools
 import numpy as np
 from pprint import pprint
+from rapidfuzz.distance import Levenshtein
 
 from difflib import SequenceMatcher
 
@@ -54,82 +55,83 @@ if __name__ == "__main__":
     
     
     def textractToArray(response):
+        num = len(response)
         #tables = [{"header": {"EXPENSE_ROW": 0} , "body" : {"EXPENSE_ROW" :0}}]*4
-        tables = [{"header":{"EXPENSE_ROW" : 0},"body": {}}] *2
+        tables = [{"header":{"EXPENSE_ROW" : None},"body": {}}] 
         forms = [{"Type": 0},{"Confidence": 0}]
+        
         i = 0
         tNum = 0
-        array = response['ExpenseDocuments']
-        
-        for r in array:
-            
-            if(r['SummaryFields']):
-                for sf in r['SummaryFields']:
-                    
-                    
-                    for val in sf:
-                                        
-                        if val == "Type":
-                            forms[i]['Type'] = [{"Type": sf['Type']['Text']}, {"Confidence": sf['Type']['Confidence']}]
-                               
-                        elif val == "ValueDetection":
-                            
-                            forms[i]['Value'] = [{"value" : sf["ValueDetection"]['Text']}]
-                               
-                            
-                        elif val == "LabelDetection":
-                            forms[i]['label'] = [{"value" : sf['LabelDetection']['Text']}, {"Confidence" : sf['LabelDetection']['Confidence']}]
-                            
-                        
-            if(r['LineItemGroups']):
+        if num > 0:
+            for array in response['ExpenseDocuments']:
                 
-                for lig in r['LineItemGroups']:
-                    
-                    tableIndex = lig['LineItemGroupIndex']
-                    
-                    
-                    
-                    
-                    for table_r in lig['LineItems']:
-                        
-                        
-                        
-                        tNum += 1
-                        for tr in table_r['LineItemExpenseFields']:
+                    if(array['SummaryFields']):
+                        for sf in array['SummaryFields']:
                             
-                            if(tr['Type']['Text']=="EXPENSE_ROW"):
-                                
-                                tables[tableIndex]['header']['EXPENSE_ROW'] == "EXPENSE_ROW"
-                                
-                                
-                            for val in tr:
-                                if(tNum == 1): # Header
+                            
+                            for val in sf:
+                                                
+                                if val == "Type":
+                                    forms[i]['Type'] = [{"Type": sf['Type']['Text']}, {"Confidence": sf['Type']['Confidence']}]
                                     
-                                    if val == "LabelDetection":
-                                        sVal = tr['LabelDetection']['Text']
-                                        
-                                        sVal = re.sub('/\([^)]+\)/','',sVal)
-                                        tables[tableIndex]['header'][tr['Type']['Text']] = sVal
-                                        
-                                        
+                                elif val == "ValueDetection":
                                     
-                                        
-                                        
-                                        
-                                if val == 'ValueDetection':
+                                    forms[i]['Value'] = [{"value" : sf["ValueDetection"]['Text']}]
                                     
-                                    if(bool(tables[tableIndex]['header'][tr['Type']['Text']])):
-                                        
-                                        
-                                        tables[tableIndex]['body'][tr['Type']['Text']] = tr['ValueDetection']['Text']
-                                        
-                            if(tr['Type']['Text']=="EXPENSE_ROW"):
+                                    
+                                elif val == "LabelDetection":
+                                    forms[i]['label'] = [{"value" : sf['LabelDetection']['Text']}, {"Confidence" : sf['LabelDetection']['Confidence']}]
+                                    
                                 
-                                tables[tableIndex]['body'][tables[tableIndex]['header']['EXPENSE_ROW']] = tr['ValueDetection']['Text']
-            
+                    if(array['LineItemGroups']):
+                        
+                        for lig in array['LineItemGroups']:
+                            
+                            tableIndex = lig['LineItemGroupIndex']
+                            
+                            for table_r in lig['LineItems']:
+                                
+                                tNum += 1
+                                
+                                for tr in table_r['LineItemExpenseFields']:
+                                    
+                                    if(tr['Type']['Text']=="EXPENSE_ROW"):
+                                        
+                                        tables[tableIndex-1]['header']['EXPENSE_ROW'] = "EXPENSE_ROW"
+                                        
+                                        
+                                    for val in tr:
+                                        if(tNum == 1): # Header
+                                            
+                                            if val == "LabelDetection":
+                                                sVal = tr['LabelDetection']['Text']
+                                                
+                                                sVal = re.sub('/\([^)]+\)/','',sVal)
+                                                tables[tableIndex-1]['header'][tr['Type']['Text']] = sVal
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                                                
+                                        if val == 'ValueDetection':
+                                            
+                                            if(tables[tableIndex-1]['header'][tr['Type']['Text']]):
+                                                
+                                                tables[tableIndex-1]['body'][tables[tableIndex-1]['header'][tr['Type']['Text']]] = (tr['ValueDetection']['Text'])
+                                                
+                                                
+                                                
+                                    
+                                    if(tr['Type']['Text']=="EXPENSE_ROW"):
+                                        
+                                        tables[tableIndex-1]['body'][tables[tableIndex-1]['header']['EXPENSE_ROW']] = tr['ValueDetection']['Text']
+                                    
+        pprint(tables[0]['body'])
         retArr = [{"forms" : forms, "tables" : tables}]
         return retArr
-    def tableMatcher(tables):
+    def tableMatcher(tables,offerData):
         sArray = [{
             "No": ["SIRA NO", "Sıra No", "Sıra", "Sira No", "S.No", "No", "NO", "#", "Sıra No.", "Order", "Order No.", "Sira No"],
             "materialDesc": [
@@ -148,24 +150,234 @@ if __name__ == "__main__":
             "deliveryDateSup": ["Teslim Tarihi"," Temin Tarihi", "Tarih", "Termin Tarihi"],
             "vatRatio": ["KDV", "K.D.V", "kdv", "KDV(%)", "KDV Oranı"],
             "curCode": ["PARA BİRİMİ", "PARA BIRIMI", "PARA BR."]}]
-        retArr = []
+        arraySpec = [{"supQuantity" : ["simpleUnwanted", "turkishDecimal"],
+                      "discountRatio" : ["simpleUnwanted", "turkishDecimal"]
+                      
+                      
+                      }]
+        offerBodyAtlEastCols = ["unitePrice", "funitePrice", "discountRatio"]
+        retArr = [{}]
+        offerReData = []
         reHeader = [{}]
         offerReturn = []
+        numofOfrdata = len(offerData)
+        headerCont = [{}]
+        possib = 0
         i = 0
-        
+        isFdata = 0
+        filterArr = []
         for t in tables[0]['tables']:
             header = t['header']
-            for dict in sArray:
-                key = list(dict.keys())
-                value = dict.values
-                if dict.get(key[i]):
-                    tempVal = 0
-                    print(key[i])
-                i+=1
+            for h in header:
                 
-                                        
+                for dict in sArray:
+                    key = list(dict.keys())
+                    
+                    valuearr = list(dict.values())
+                    
+                    
+                    if not reHeader[0]:
+                        tempVal = levenshtein(h,valuearr[0][i],60)
+                        
+                        srcVal = None
+                        
+                        if not tempVal:
+                            srcVal = tempVal['val']
+                            possib = tempVal['possibility']
+                            isExact = tempVal['isExactRs']
+                        if not srcVal:
+                            reHeader[0][key[i]] = h
+                                             
+                            
+                            
+                            headerCont[0] =[{"possibility" : possib}]
+                            
+                    else:
+                        
+                        if(headerCont[0][0]['possibility']< 100):
+                            tempVal = levenshtein(h,valuearr[0][i],60)
+                            srcVal = None
+                            if not tempVal:
+                                srcVal =  tempVal['val']
+                                possib = tempVal['possibility']
+                                isExact = tempVal['isExactRs']
+                            if(not srcVal and headerCont[0][0]['possibility']<possib):
+                                
+                                reHeader[0] = h
+                                
+                                
+                                headerCont[0] = [{"possibility": possib}]
+                            
+                    
+               
+            body = t['body']
+            
+            
+            items = []
+            j = 0
+            numofHeader = len(reHeader)
+            
+            for b in body:
+                if type(b) == str:
+                    items.append(len(b))
+                    
+            array_depth = max(items)
+            
+            
+            for x in range(array_depth):
+                for rh in reHeader:
+                    vRh = list(rh.values())
+                    kRh = list(rh.keys())
+                    
+                    
+                    
+                    if body:
+                        
+                        if kRh in arraySpec:
+                            filterArr = arraySpec[0][kRh[j]]
+                                               
+                        temVal = filterCustomRule(body,filterArr)
+                        
+                        retArr[0][kRh[j]] = tempVal
+                        
+                        
+                
+                for rh in reHeader:
+                    vRh = list(rh.values())
+                    kRh = list(rh.keys())
+                    
+                    
+                    
+                    if 'EXPENSE_ROW' in body and not retArr[j]['curCode']:
+                        
+                        tempVal = detectCurFromText(body['EXPENSE_ROW'], "CODE")
+                        if tempVal:
+                            retArr[j]['curCode'] = tempVal
+                j += 1
+                
+                                
+                    
+        
+        if(numofOfrdata >= 0):
+            if numofOfrdata == 1 and len(retArr) == 1:
+                offerReData = retArr
+            else:
+                
+                for aj in range(len(retArr)):
+                    
+                    temp = retArr[aj]
+                    
+                    for tmp in temp:
+                        
+                        if tmp in offerBodyAtlEastCols:
+                            isFdata = 1
+                            
+                        
+
+        return [{"tables" : retArr}]
+    def decodeFormAccToOffer(arr, ofrMtrList = []):
+        returnVals = [{}]
+        table = []
+        form = []
+        table = tableMatcher(arr,ofrMtrList)
+        returnVals[0]['table'] = table
+        return returnVals
+    def filterCustomRule(val, rules):
+        reval = val
+        if val:
+            if len(rules) > 0 :
+                for r in rules:
+                    val = reval
+                    if r == "simpleUnwanted":
+                        val2 = re.sub([":", "*", "**", "***", "!", " : "],'',val)
+                        reval = val2
+                    if r == "turkishChar":
+                        val2 = re.sub([""],'İ',val)
+                        reval = val2
+                    if r == "convertInteger":
+                        val2 = re.sub("/[^0-9.,]/",'',val)
+                        reval = int(val2)
+                    if r == "turkishDecimal":
+                        val2 = re.sub([":", "*", "**", "***", "!", " : "],'',val)
+                        pointArr = split(".",val2)
+                        commaArr = split(',', val2)
+                        lang = "TR"
+                        if(lang == "TR"):
+                            reval = val2
+        return reval            
+                        
+                    
+               
+                  
+    def detectCurFromText(text , rType = "INT"):
+        caughtElement = ""
+        retVal = None
+        if(text):
+            wordArr = text.split(' ')
+            arrTL = ["TL", "TÜRK LİRASI", "₺", "TRY", "Türk Lirası"]
+            arrUsd = ["$", "USD", "DOLAR", "Amerikan Doları", "USA Dolar"]
+            arrEuro = ["€", "Avro", "Euro"]
+            arrGbp =["£", "GBP", "Sterlin", "İngiliz Sterlini"]
+            for wor in wordArr:
+                if wor in arrTL:
+                    caughtElement = 1
+                if wor in arrEuro:
+                    caughtElement = 2
+                if wor in arrUsd:
+                    caughtElement = 3
+                if wor in arrGbp:
+                    caughtElement = 4
+        if caughtElement:
+            if rType == "INT":
+                retVal = caughtElement
+            if rType == "CODE":
+                if caughtElement == 1:
+                    retVal = "TL"
+                if caughtElement == 2:
+                    retVal = "EURO"
+                if caughtElement == 3:
+                    retVal = "USD"
+                if caughtElement == 4:
+                    retVal = "GBP"
+        return retVal            
+                        
+    
+                          
+    def levenshtein(val, words , mPossibility = 70, sResult = False):
+        if val and words:
+            retVal = ""
+            isExactRs = False
+            possibility = 0
+            
+            # Levenstein
+            sensitivity = 3
+            shortest = -1 
+            method = 0
+            for w in words:
+                lev = Levenshtein.distance(val,w)
+                
+                if(lev == 0):
+                    closest = w
+                    shortest = 0
+                    possibility = 100
+                    isExactRs = True
+                    method = 1
+                if(lev <= shortest or shortest <0):
+                    closest = w
+                    shortest = lev
+            if(shortest <= sensitivity):
+                retVal = closest
+                isExactRs = False
+                possibility = 100 - (shortest * 10)
+                method = 1
+            if(isExactRs or possibility >= mPossibility):
+                return [{"isExactRs" : isExactRs, "possibility" : possibility, "val" : retVal, "method": method, "srcval" : val}]
+        else:
+            return ""
+        return 1       
     arr = textractToArray(response)
-    tableMatcher(arr)    
+    
+    print(tableMatcher(arr,arr))   
     
     
                        
