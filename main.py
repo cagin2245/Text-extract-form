@@ -35,7 +35,90 @@ def textDetect(): #AWS Textract bağlantısı ve response döndürülmesi
     
     return response
     
-
+def headers(tables):
+    
+    num = len(response)
+    #tables = [{"header": {"EXPENSE_ROW": 0} , "body" : {"EXPENSE_ROW" :0}}]*4
+    tables = [{"header" : [],"body" : []}] 
+    forms = [{"Type": 0},{"Confidence": 0}]
+    d ={}
+    
+    i = 0
+    
+    if num > 0:
+        for array in response['ExpenseDocuments']:
+           
+                if(array['LineItemGroups']):
+                    
+                    for lig in array['LineItemGroups']:
+                        
+                        tableIndex = lig['LineItemGroupIndex']
+                        tNum = 0
+                        for table_r in lig['LineItems']:
+                            
+                            tNum += 1
+                            
+                            for tr in table_r['LineItemExpenseFields']:
+                                
+                                if(tr['Type']['Text']=="EXPENSE_ROW"):
+                                    if tables[tableIndex-1]['header'] == 'EXPENSE_ROW':
+                                        tables[tableIndex-1]['header'] = "EXPENSE_ROW"
+                                    
+                                    
+                                    
+                                for val in tr:
+                                    if(tNum == 1): # Header
+                                        
+                                        if val == "LabelDetection":
+                                            sVal = tr['LabelDetection']['Text']
+                                            
+                                            sVal = re.sub('/\([^)]+\)/','',sVal)
+                                            
+                                            
+                                            
+                                            tables[tableIndex-1]['header'].append(sVal)
+    return tables[tableIndex-1]['header']
+def bodys(tables,headers):
+    num = len(response)
+    #tables = [{"header": {"EXPENSE_ROW": 0} , "body" : {"EXPENSE_ROW" :0}}]*4
+    tables = [{"header" : [],"body" : []}] *7
+    d = {}
+    k = 0
+    if num > 0:
+        for array in response['ExpenseDocuments']:
+            if(array['LineItemGroups']):
+                    
+                    
+                    for lig in array['LineItemGroups']:
+                        
+                        tableIndex = lig['LineItemGroupIndex']
+                        tNum = 0
+                        
+                        for table_r in lig['LineItems']:
+                            
+                            tNum += 1
+                            
+                            
+                            for tr in table_r['LineItemExpenseFields']:
+                                try:
+                                    print(k)
+                                    print(headers[k])
+                                    d = {headers[k]:tr['ValueDetection']['Text']}
+                                    k+=1
+                                    print(d)
+                                except IndexError:
+                                    break
+                                tables[tableIndex-1]['body'].append(d)    
+                            k = 0
+                        k-=1            
+                                
+                                
+    return tables[tableIndex-1]['body']
+       
+                
+                                
+                            
+           
 
 if __name__ == "__main__":
     
@@ -49,19 +132,20 @@ if __name__ == "__main__":
    
     
     
-    with open('AWS_AnalyzeExpense_RESPONSE.txt',encoding="utf8") as responseFile:
+    with open('aws.txt',encoding="utf8") as responseFile:
         data = responseFile.read()
         response = ast.literal_eval(data)
     
     
-    def textractToArray(response):
+    def textractToArray(response,headers,bodys):
         num = len(response)
         #tables = [{"header": {"EXPENSE_ROW": 0} , "body" : {"EXPENSE_ROW" :0}}]*4
         tables = [{"header" : [],"body" : []}] 
         forms = [{"Type": 0},{"Confidence": 0}]
+        d ={}
         
         i = 0
-        
+        k = 0
         if num > 0:
             for array in response['ExpenseDocuments']:
                 
@@ -89,6 +173,8 @@ if __name__ == "__main__":
                             
                             tableIndex = lig['LineItemGroupIndex']
                             tNum = 0
+                            tables[tableIndex-1]['header'].append(headers)
+                            tables[tableIndex-1]['body'].append(bodys)
                             for table_r in lig['LineItems']:
                                 
                                 tNum += 1
@@ -101,6 +187,11 @@ if __name__ == "__main__":
                                         
                                         
                                         
+                                                
+                                                
+                                            
+                                        
+                                           
                                     for val in tr:
                                         if(tNum == 1): # Header
                                             
@@ -108,43 +199,22 @@ if __name__ == "__main__":
                                                 sVal = tr['LabelDetection']['Text']
                                                 
                                                 sVal = re.sub('/\([^)]+\)/','',sVal)
-                                                
-                                                
-                                                
-                                                tables[tableIndex-1]['header'].append(sVal)
-                                                
-                                                
-                                                
-                                                
-                                                
-                                                
-                                                                                
-                                        if val == 'ValueDetection':
-                                            
-                                            if(tables[tableIndex-1]['header']):
-                                                iter = len(tables[tableIndex-1]['header'])
-                                                print(iter)
-                                                print(tables[tableIndex-1]['header'][i])
-                                                
-                                                tables[tableIndex-1]['body'].append(dict)
-                                                
-                                                
-                                                
-                                                
-                                            
-                                                
-                                                
-                                               
-                                                
-                                                
-                                                
                                     
-                                    # if(tr['Type']['Text']=="EXPENSE_ROW"):
                                         
-                                    #     tables[tableIndex-1]['body'][i][tables[tableIndex-1]['header'][i]['EXPENSE_ROW']] = tr['ValueDetection']['Text']
+                                            
+                                
+                                        
+                                
+                                
+                            if(tr['Type']['Text']=="EXPENSE_ROW"):
+                                
+                                tables[tableIndex-1]['header'].append(tr['Type']['Text']) 
+            i+=1            
+                    
+                                
                                         
                                         
-        
+        pprint(tables)
         retArr = [{"forms" : forms, "tables" : tables}]
         return retArr
     def tableMatcher(tables,offerData):
@@ -228,13 +298,15 @@ if __name__ == "__main__":
                
             body = t['body']
             
-            
+            val = []
             items = []
             j = 0
             numofHeader = len(reHeader)
-            
             for b in body:
-                if type(b) == str:
+                val = list(b.keys())
+                
+                if type(val[j]) == str:
+                    
                     items.append(len(b))
                     
             array_depth = max(items)
@@ -252,7 +324,7 @@ if __name__ == "__main__":
                         if kRh in arraySpec:
                             filterArr = arraySpec[0][kRh[j]]
                                                
-                        temVal = filterCustomRule(body,filterArr)
+                        temVal = filterCustomRule(b,filterArr)
                         
                         retArr[0][kRh[j]] = tempVal
                         
@@ -269,7 +341,7 @@ if __name__ == "__main__":
                         tempVal = detectCurFromText(body['EXPENSE_ROW'], "CODE")
                         if tempVal:
                             retArr[j]['curCode'] = tempVal
-                j += 1
+            j += 1
                 
                                 
                     
@@ -391,9 +463,15 @@ if __name__ == "__main__":
         else:
             return ""
         return 1       
-    arr = textractToArray(response)
     
-    print(tableMatcher(arr,arr))   
+    
+    header = headers(response)
+    body = bodys(response,header)
+    
+    
+    arr = textractToArray(response,header,body)
+    
+      
     
     
                        
