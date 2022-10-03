@@ -61,7 +61,7 @@ function textractToTable($pureArr) {
 							$trnum++;
 							foreach($tr['LineItemExpenseFields'] as $trk => $trv)
 							{			
-								print_r($trv);
+								
 								//getpre($trv['Type'])	;	
 	
 								if($trv['Type']['Text'] == "EXPENSE_ROW")
@@ -88,12 +88,12 @@ function textractToTable($pureArr) {
 									{	
 										case "ValueDetection":
 											
-											
+											print($tables[$tableIndex]['header'][$trk]);
 											if(isset($tables[$tableIndex]['header'][$trk]))
 											{
 												
 												$tables[$tableIndex]['body'][$tables[$tableIndex]['header'][$trk]][] = isset($v['Text']) ? $v['Text'] : null ;
-												
+												print_r($tables[$tableIndex]['body'][$tables[$tableIndex]['header'][$trk]]);
 											}	
 										break;										
 									}
@@ -111,7 +111,7 @@ function textractToTable($pureArr) {
 			}
         }
 		}
-		print_r($tables);
+		
 		$retArr = array("forms" =>$forms, "tables" => $tables);
 		return $retArr;
 	}
@@ -178,10 +178,12 @@ function offerTableSceletonMatcher($tables = array()) {
 		{
 			
 			foreach($array as $k => $v)
-			{
+			{	
+				print($reHeader[$k]);
 				if(!isset($reHeader[$k]))
 				{
 					$tempVal = specialSoundex($h, $v, false, 60);
+					
 					$srcVal  = null;
 					if(!empty($tempVal))
 					{
@@ -192,7 +194,8 @@ function offerTableSceletonMatcher($tables = array()) {
 					if(!empty($srcVal))
 					{
 						
-						$reHeader[$k]   = $h;	
+						$reHeader[$k]   = $h;
+							
 						$headercont[$k] = array("possibility" => $possib ); 		
 						break;
 					}
@@ -211,6 +214,7 @@ function offerTableSceletonMatcher($tables = array()) {
 						if(!empty($srcVal) && $headercont[$k]['possibility'] < $possib)
 						{
 							$reHeader[$k]   = $h;	
+							
 							$headercont[$k] = array("possibility" => $possib ); 		
 							break;
 						}
@@ -234,7 +238,7 @@ function offerTableSceletonMatcher($tables = array()) {
 			{				
 				foreach($reHeader as $krh => $vrh)
 				{	
-					
+					print($krh);
 					if(isset($body[$vrh][$j] ))
 					{
 						$filtArr = isset($arraySpecs[$krh]) ? $arraySpecs[$krh] : array();
@@ -309,6 +313,7 @@ function specialSoundex($val, $words = array(), $metaphone = false, $minPossibil
 		foreach ($words as $word) 
 		{
 			$lev = levenshtein($val, $word);
+			
 			if ($lev == 0) 
 			{
 				$closest     = $word;
@@ -323,6 +328,7 @@ function specialSoundex($val, $words = array(), $metaphone = false, $minPossibil
 				$closest  = $word;
 				$shortest = $lev;
 			}
+			
 		}
 		if($shortest <= $sensitivity)
 		{
@@ -332,7 +338,7 @@ function specialSoundex($val, $words = array(), $metaphone = false, $minPossibil
 			$method     = 1;
 			//echo $possibility;echo "-1--".$val."->".$closest."<br>";
 		} 
-
+		
 		/* 3 similar text*/
 		if(!$isExactRs || $possibility < 100)
 		{
@@ -340,6 +346,8 @@ function specialSoundex($val, $words = array(), $metaphone = false, $minPossibil
 			{
 				$temp = similar_text($val, $word); 
 				$max  = max(strlen($val), strlen($word));
+				print($max);
+				print("\n");
 				$newp = $temp / $max * 100;
 				///echo $newp;echo "--2--".$val."->".$word."<br>";
 				if($newp > $possibility)

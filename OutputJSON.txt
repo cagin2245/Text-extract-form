@@ -1,1 +1,37 @@
-[{'forms': [{'Type': [{'Type': 'TAX'}, {'Confidence': 96.94908142089844}], 'Value': [{'value': '205,74 TL'}], 'label': [{'value': 'Kdv Tutar%18'}, {'Confidence': 81.33857727050781}]}, {'Confidence': 0}], 'tables': [{'header': [['Sira No', 'Ürün Kodu', 'Ürün Adi / Ürün Açiklamasi', 'Miktar', 'Birim', 'Birim Fiyat', 'Toplam Tutar', ''], 'EXPENSE_ROW'], 'body': [[{'Sira No': '1'}, {'Ürün Kodu': '152.1.2.02.00\n050'}, {'Ürün Adi / Ürün Açiklamasi': 'Ø20 mm ÜST YAPI RUIT BORU GRI HF ALEV\nYAYMAYAN ORTA SERI PP20RJ10-03 /'}, {'Miktar': '204,00'}, {'Birim': 'METRE'}, {'Birim Fiyat': '3,25'}, {'Toplam Tutar': '663,00'}, {'': 'TL'}, {'Sira No': '2'}, {'Ürün Kodu': '152.2.2.03.00\n001'}, {'Ürün Adi / Ürün Açiklamasi': 'Ø20 mm SIVA ÜSTÜ 90* DIRSEK GRI HF ALEV\nYAYMAYAN PP20DRS-03/'}, {'Miktar': '100,00'}, {'Birim': 'ADET'}, {'Birim Fiyat': '3'}, {'Toplam Tutar': '300,00'}, {'': 'TL'}, {'Sira No': '3'}, {'Ürün Kodu': '152.2.2.02.00\n003'}, {'Ürün Adi / Ürün Açiklamasi': 'Ø20 mm SIVA ÜSTÜ MUF $EFFAF HF ALEV\nYAYMAYAN SPIRAL PP20SMUF,'}, {'Miktar': '100,00'}, {'Birim': 'ADET'}, {'Birim Fiyat': '1,8'}, {'Toplam Tutar': '180,00'}, {'': 'TL'}]]}]}]
+{
+  "No": [
+    [
+      "1",
+      "2",
+      "3"
+    ]
+  ],
+  "supQuantity": [
+    [
+      "204,00",
+      "100,00",
+      "100,00"
+    ]
+  ],
+  "unite": [
+    [
+      "METRE",
+      "ADET",
+      "ADET"
+    ]
+  ],
+  "unitePrice": [
+    [
+      "3,25",
+      "3",
+      "1,8"
+    ]
+  ],
+  "totalAmount": [
+    [
+      "663,00",
+      "300,00",
+      "180,00"
+    ]
+  ]
+}
