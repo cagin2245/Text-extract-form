@@ -1,0 +1,14 @@
+
+TODO:
+  ✔ Implement string comparison AND matching once again with better output @done(22-10-04 03:14)
+  ✔ Do test with output array of multiple images @done(22-10-04 03:14)
+  ☐ Implement functions:
+    ☐ decodeFormAccToOffer
+    ☐ stringCompareMatch
+    ☐ detectCurFromText
+    
+
+FIXME:  
+  ✔ textractToArray function doesn't produce an output with correct dictionary form @done(22-10-04 03:15)
+  ✔ Dictionary output doesn't work the way that expected to work @done(22-10-04 03:15)
+  ☐  Parsing to JSON has some formatting issues due to non 'utf-8' encoding of array

@@ -1,33 +1,29 @@
+
+from array import array
 from collections import defaultdict
 from operator import is_not
 from posixpath import split
+
+from xml.dom.minidom import Document
 import boto3
+import pandas as pd
 import json
 import re
 import ast
+import itertools
 import numpy as np
 from pprint import pprint
+from rapidfuzz.distance import Levenshtein
 from similar_text import similar_text
+import jellyfish
 import difflib
-
+from strsimpy.weighted_levenshtein import WeightedLevenshtein
 
 from difflib import SequenceMatcher
 
 
-def textDetect(): #AWS Textract bağlantısı ve response döndürülmesi
-    response = None
-    file = open("demo.jpg","rb")
-    binaryFile = file.read()    
-    client = boto3.client('textract',"us-east-1")
-    response = client.analyze_expense(
-        Document={
-            'Bytes': binaryFile
 
-        })
-    
-    return response
-    
-def headers(tables): # header extract
+def headers(tables,response): # header extract
     
     num = len(response)
     #tables = [{"header": {"EXPENSE_ROW": 0} , "body" : {"EXPENSE_ROW" :0}}]*4
@@ -68,7 +64,7 @@ def headers(tables): # header extract
                                             
                                             tables[tableIndex-1]['header'].append(sVal)
     return tables[tableIndex-1]['header'],max(table_count)
-def bodys(tables,headers): # extract bodys of headers
+def bodys(tables,headers,response): # extract bodys of headers
     num = len(response)
     
     #tables = [{"header": {"EXPENSE_ROW": 0} , "body" : {"EXPENSE_ROW" :0}}]*4
@@ -302,7 +298,8 @@ def tableMatcher(tables,offerData): # Comparing and Matching tables with inline 
             
         
         array_depth = max(items)
-        
+        # ~| TODO |~
+        # Implement new data appending and accessing with defaultdict
         count = 0
         
         
@@ -318,7 +315,11 @@ def tableMatcher(tables,offerData): # Comparing and Matching tables with inline 
            
              
                
-            
+            # if b in list(dict_sub.items()):
+            #     dict_sub[count][b[iter]]  = dict_sub[count][b[iter]] + b[iter]
+            #     print(dict_sub[count])
+            # else:
+            #     dict_sub[count].append(b[iter])
             count+=1    
         
     result_dict = dict(dict_sub)
@@ -424,39 +425,3 @@ def detectCurFromText(text , rType = "INT"):
                 retVal = "GBP"
     return retVal            
                     
-
-if __name__ == "__main__":
-    
-    strCompare = ["Miktar","Sıra"]    # Karşılaştırılacak array
-    # with open('Input.txt',encoding="utf8") as input_file:
-    #     for line in input_file:
-    #         strCompare.append(line)
-    # response = textDetect()
-    # with open("AWS_AnalyzeExpense_RESPONSE.txt","w",encoding="utf8") as aws_response:
-    #     aws_response.write(str(response))
-   
-    
-    
-    with open('aws.txt',encoding="utf8") as responseFile:
-        data = responseFile.read()
-        response = ast.literal_eval(data)
-
-    header,table_count = headers(response)
-    body = bodys(response,header)
-    
-    
-    arr = textractToArray(response,header,body,table_count)
-    
-    
-    res =tableMatcher(arr,arr)
-    print(res)
-    json_res = json.dumps(res,indent=2,ensure_ascii=False)
-    
-    
-    
-    
-    with open("Output.json","w",encoding='utf8')as json_file:   
-        json_file.write(str(json_res))    
-
-    
-    
